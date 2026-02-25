@@ -1,4 +1,4 @@
-const API = 'http://localhost:3001/api/notes'
+const API = window.QUICKNOTES_API || 'http://localhost:3001/api/notes'
 
 let notes = []
 let activeId = null
@@ -37,55 +37,88 @@ const renderMd = (md) => {
   return html
 }
 
+// --- Error display ---
+const showError = (msg) => {
+  console.error('[quicknotes]', msg)
+  const toolbar = document.getElementById('toolbar')
+  const existing = document.getElementById('error-banner')
+  if (existing) existing.remove()
+  const banner = document.createElement('div')
+  banner.id = 'error-banner'
+  banner.style.cssText = 'background:#5c1010;color:#ffaaaa;padding:6px 16px;font-size:0.8rem;'
+  banner.textContent = msg
+  toolbar.insertAdjacentElement('afterend', banner)
+  setTimeout(() => banner.remove(), 4000)
+}
+
 // --- API helpers ---
 const fetchNotes = async () => {
-  const res = await fetch(API)
-  notes = await res.json()
-  renderList()
-  if (notes.length > 0 && !activeId) loadNote(notes[0].id)
+  try {
+    const res = await fetch(API)
+    if (!res.ok) throw new Error(`GET /api/notes ${res.status}`)
+    notes = await res.json()
+    renderList()
+    if (notes.length > 0 && !activeId) loadNote(notes[0].id)
+  } catch (e) {
+    showError(`Could not load notes: ${e.message}`)
+  }
 }
 
 const createNote = async () => {
-  const res = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: 'Untitled', body: '' }),
-  })
-  const note = await res.json()
-  notes.unshift(note)
-  renderList()
-  loadNote(note.id)
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Untitled', body: '' }),
+    })
+    if (!res.ok) throw new Error(`POST /api/notes ${res.status}`)
+    const note = await res.json()
+    notes.unshift(note)
+    renderList()
+    loadNote(note.id)
+  } catch (e) {
+    showError(`Could not create note: ${e.message}`)
+  }
 }
 
 const saveNote = async (id, body) => {
   const note = notes.find((n) => n.id === id)
   if (!note) return
-  // derive title from first heading or first line
   const firstLine = body.split('\n')[0].replace(/^#+\s*/, '').trim()
   const title = firstLine || 'Untitled'
-  const res = await fetch(`${API}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, body }),
-  })
-  const updated = await res.json()
-  const idx = notes.findIndex((n) => n.id === id)
-  notes[idx] = updated
-  renderList()
-  document.getElementById('note-title-display').textContent = updated.title
+  try {
+    const res = await fetch(`${API}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body }),
+    })
+    if (!res.ok) throw new Error(`PUT /api/notes/${id} ${res.status}`)
+    const updated = await res.json()
+    const idx = notes.findIndex((n) => n.id === id)
+    notes[idx] = updated
+    renderList()
+    document.getElementById('note-title-display').textContent = updated.title
+  } catch (e) {
+    showError(`Could not save note: ${e.message}`)
+  }
 }
 
 const deleteNote = async (id) => {
-  await fetch(`${API}/${id}`, { method: 'DELETE' })
-  notes = notes.filter((n) => n.id !== id)
-  activeId = null
-  renderList()
-  if (notes.length > 0) {
-    loadNote(notes[0].id)
-  } else {
-    document.getElementById('editor').value = ''
-    document.getElementById('preview').innerHTML = ''
-    document.getElementById('note-title-display').textContent = ''
+  try {
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error(`DELETE /api/notes/${id} ${res.status}`)
+    notes = notes.filter((n) => n.id !== id)
+    activeId = null
+    renderList()
+    if (notes.length > 0) {
+      loadNote(notes[0].id)
+    } else {
+      document.getElementById('editor').value = ''
+      document.getElementById('preview').innerHTML = ''
+      document.getElementById('note-title-display').textContent = ''
+    }
+  } catch (e) {
+    showError(`Could not delete note: ${e.message}`)
   }
 }
 
