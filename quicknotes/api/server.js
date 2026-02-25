@@ -1,9 +1,15 @@
 const express = require('express')
 const { v4: uuidv4 } = require('uuid')
-const cors = require('cors')
+// inline CORS middleware to satisfy constraints (no extra deps)
 
 const app = express()
-app.use(cors({ origin: 'http://localhost:3000' }))
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') return res.status(204).end()
+  next()
+})
 app.use(express.json())
 
 const notes = []
