@@ -1,16 +1,20 @@
 const express = require('express')
 const { v4: uuidv4 } = require('uuid')
-const cors = require('cors')
 
 const app = express()
-app.use(cors({ origin: 'http://localhost:3000' }))
+
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
 app.use(express.json())
 
 const notes = []
 
-function now () {
-  return new Date().toISOString()
-}
+const now = () => new Date().toISOString()
 
 // seed two example notes
 notes.push({
@@ -72,4 +76,3 @@ const port = process.env.PORT || 3001
 app.listen(port, () => {
   console.log('quicknotes API listening on port', port)
 })
-
