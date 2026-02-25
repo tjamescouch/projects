@@ -1,0 +1,59 @@
+node_modules/
+.org/
+.gro
+*.tgz
+.claude
+.agentchat
+*.bak*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+
+# Build output — TypeScript compiles to dist/
+dist/
+build/
+
+# Compiled JS in source dirs (use dist/ instead)
+lib/**/*.js
+lib/**/*.js.map
+lib/**/*.d.ts
+lib/**/*.d.ts.map
+bin/**/*.js
+bin/**/*.js.map
+bin/**/*.d.ts
+bin/**/*.d.ts.map
+
+# Secrets and credentials — NEVER commit
+*.pem
+*.key
+*-wallet.json
+wallet.json
+*-identity.json
+identity.json
+mnemonic.txt
+seed.txt
+.env
+.env.*
+credentials.json
+secrets.json
+
+# Akash specific
+akash-wallet.json
+deploy.yaml
+*.sdl
+
+# Sensitive directories — NEVER commit
+.ssh/
+
+# Logs
+*.log
+logs/
+
+
+# Misc
+bans.json
+first-seen.json
+*.bak*
