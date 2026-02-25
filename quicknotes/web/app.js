@@ -1,4 +1,4 @@
-const API = 'http://localhost:3001/api/notes'
+const API = (typeof window !== 'undefined' && window.QUICKNOTES_API) || 'http://localhost:3001/api/notes'
 
 let notes = []
 let activeId = null
